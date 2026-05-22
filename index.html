@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEAM Transformer - Maestro Explorador ESCBA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f8fafc; margin: 0; }
+        .animate-fade { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .btn-primary { background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); transition: all 0.3s ease; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.4); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- NOTIFICACIONES -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-32 opacity-0 z-[100] flex items-center gap-3 w-[90%] max-w-md">
+        <i data-lucide="info" class="w-6 h-6 text-indigo-400 flex-shrink-0"></i>
+        <span id="toast-message" class="text-sm font-medium leading-tight">Mensaje de sistema</span>
+    </div>
+
+    <!-- BARRA SUPERIOR -->
+    <nav class="glass border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 p-2 rounded-xl text-white shadow-md">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="font-extrabold text-lg text-indigo-900 leading-none">STEAM Transformer</h1>
+                <p class="text-[9px] font-bold text-indigo-500 tracking-[0.2em] mt-1 uppercase">Maestro Explorador ESCBA</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- CONTADOR DE USOS -->
+            <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-indigo-400"></i>
+                <span id="contador-usos" class="text-xs font-bold text-slate-500">5/5 usos hoy</span>
+            </div>
+            <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-700">
+                <i data-lucide="globe" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Acceso Público</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-4xl mx-auto w-full p-4 md:p-8" id="app-container">
+
+        <!-- PANTALLA 1: FORMULARIO -->
+        <div id="view-form" class="animate-fade">
+            <div class="bg-white p-6 md:p-10 rounded-[2.5rem] shadow-xl border border-slate-200">
+                <div class="mb-8 border-b border-slate-100 pb-6">
+                    <h2 class="text-xl md:text-2xl font-black text-slate-800">Transforma tu Clase</h2>
+                    <p class="text-slate-500 text-xs md:text-sm mt-1">Detallá tu planificación para que la IA genere alternativas STEAM basadas en el diseño de Córdoba.</p>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Espacio Curricular <span class="text-red-400">*</span></label>
+                            <input type="text" id="materia" class="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm font-medium" placeholder="Ej: Ciencias Naturales, Matemática...">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tema Central <span class="text-red-400">*</span></label>
+                            <input type="text" id="tema" class="w-full p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none transition-all text-sm font-medium" placeholder="Ej: La Materia y la Energía">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Aprendizajes y Contenidos <span class="text-red-400">*</span></label>
+                        <textarea id="aprendizaje" class="w-full h-28 p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none resize-none transition-all text-sm font-medium leading-relaxed" placeholder="Ej: Reconocimiento de las partes de la planta. Observación y registro de fenómenos naturales a lo largo del tiempo..."></textarea>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Propósito o Desafío del Contexto <span class="text-red-400">*</span></label>
+                        <textarea id="problema" class="w-full h-24 p-4 rounded-2xl bg-slate-50 border border-slate-200 focus:border-indigo-500 outline-none resize-none transition-all text-sm font-medium leading-relaxed" placeholder="¿Qué problema del aula o de la comunidad buscás resolver o abordar con esta clase?"></textarea>
+                    </div>
+
+                    <!-- AVISO DE LÍMITE -->
+                    <div id="aviso-limite" class="hidden bg-amber-50 border border-amber-200 rounded-2xl p-4 text-center">
+                        <p class="text-sm font-bold text-amber-700">Usaste todos tus usos de hoy. Volvé mañana para seguir transformando clases 🙌</p>
+                    </div>
+
+                    <button id="btn-generar" onclick="startTransformation()" class="mt-8 w-full py-4 md:py-5 btn-primary text-white rounded-[1.5rem] font-black text-base md:text-lg flex items-center justify-center gap-3 shadow-lg hover:shadow-indigo-200 transition-all active:scale-95">
+                        <i data-lucide="zap"></i>
+                        <span>GENERAR PROPUESTAS STEAM</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 2: CARGANDO -->
+        <div id="view-loading" class="hidden py-24 md:py-32 text-center animate-fade">
+            <div class="w-16 h-16 md:w-20 md:h-20 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mx-auto mb-6"></div>
+            <h3 class="text-xl md:text-2xl font-black text-slate-800">Transformando clase...</h3>
+            <p class="text-slate-500 mt-2 font-medium text-sm">Generando rutas STEAM autónomas e interdisciplinarias.</p>
+        </div>
+
+        <!-- PANTALLA 3: RESULTADOS -->
+        <div id="view-result" class="hidden space-y-6 animate-fade pb-20">
+
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-3 sticky top-20 z-40 bg-slate-50/95 backdrop-blur py-4 rounded-b-2xl px-2">
+                <button onclick="resetApp()" class="flex items-center gap-2 text-slate-600 font-bold text-xs bg-white border border-slate-200 px-5 py-3 rounded-xl hover:bg-slate-50 transition-all w-full sm:w-auto justify-center">
+                    <i data-lucide="refresh-ccw" class="w-4 h-4"></i> NUEVA CLASE
+                </button>
+                <button onclick="downloadPDF()" class="flex items-center gap-2 bg-emerald-600 text-white font-bold text-xs px-6 py-3 rounded-xl shadow-lg shadow-emerald-100 hover:bg-emerald-700 transition-all active:scale-95 w-full sm:w-auto justify-center">
+                    <i data-lucide="download" class="w-4 h-4"></i> DESCARGAR PLANIFICACIÓN
+                </button>
+            </div>
+
+            <!-- CONTENEDOR PARA EL PDF -->
+            <div id="pdf-content" class="space-y-8 bg-white p-6 md:p-10 rounded-[2rem] border border-slate-200 shadow-sm">
+
+                <div class="text-center border-b border-slate-100 pb-6">
+                    <h2 class="text-2xl md:text-3xl font-black text-indigo-900 uppercase tracking-tight">Propuesta STEAM Ampliada</h2>
+                    <div class="flex flex-wrap justify-center gap-2 md:gap-4 mt-4 text-xs md:text-sm font-bold text-slate-500">
+                        <span id="doc-materia" class="bg-slate-100 px-3 py-1 rounded-lg"></span>
+                        <span id="doc-tema" class="bg-slate-100 px-3 py-1 rounded-lg"></span>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 p-6 md:p-8 rounded-2xl text-center">
+                    <h4 class="text-[10px] font-black text-indigo-500 uppercase mb-3 tracking-[0.2em]">Pregunta Investigable / Desafío</h4>
+                    <p id="res-pregunta" class="text-xl md:text-2xl font-black text-indigo-950 leading-tight"></p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+
+                    <!-- Alternativa A -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-indigo-600 p-2.5 rounded-xl text-white shadow-md"><i data-lucide="book-open" class="w-5 h-5"></i></div>
+                            <h3 class="font-black uppercase tracking-tight text-slate-800 text-base md:text-lg leading-tight">Alternativa A<br><span class="text-[10px] md:text-xs text-slate-500 font-bold">Aplicación Autónoma (Propio Espacio)</span></h3>
+                        </div>
+                        <div class="space-y-4" id="siglas-container"></div>
+                    </div>
+
+                    <!-- Alternativa B -->
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-emerald-600 p-2.5 rounded-xl text-white shadow-md"><i data-lucide="users" class="w-5 h-5"></i></div>
+                            <h3 class="font-black uppercase tracking-tight text-slate-800 text-base md:text-lg leading-tight">Alternativa B<br><span class="text-[10px] md:text-xs text-slate-500 font-bold">Proyecto Interdisciplinario</span></h3>
+                        </div>
+                        <div class="bg-slate-50 p-6 md:p-8 rounded-2xl border border-slate-100 space-y-6 h-full">
+                            <div>
+                                <label class="text-[10px] font-black text-indigo-500 uppercase tracking-widest block mb-2">Espacios a Articular</label>
+                                <p id="res-socios" class="text-base md:text-lg font-bold text-slate-800 leading-tight"></p>
+                            </div>
+                            <div class="border-t border-slate-200 pt-4">
+                                <label class="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-2">Producto Final Evidenciable</label>
+                                <p id="res-producto" class="text-base md:text-lg font-bold text-slate-800 leading-tight"></p>
+                            </div>
+                            <div class="border-t border-slate-200 pt-4">
+                                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Descripción del Proyecto</label>
+                                <p id="res-desc" class="text-sm text-slate-600 leading-relaxed font-medium"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 mt-4 border-t border-slate-100 text-center opacity-50">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-slate-500">Generado por STEAM Transformer • Maestro Explorador ESCBA</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // ─── CONTADOR DE USOS (localStorage) ───────────────────────────────────
+        const LIMITE_USOS = 5;
+        const KEY_USOS    = 'steam_usos';
+        const KEY_FECHA   = 'steam_fecha';
+
+        function getUsosRestantes() {
+            const hoy = new Date().toDateString();
+            if (localStorage.getItem(KEY_FECHA) !== hoy) {
+                localStorage.setItem(KEY_FECHA, hoy);
+                localStorage.setItem(KEY_USOS, '0');
+            }
+            const usados = parseInt(localStorage.getItem(KEY_USOS) || '0');
+            return LIMITE_USOS - usados;
+        }
+
+        function registrarUso() {
+            const usados = parseInt(localStorage.getItem(KEY_USOS) || '0');
+            localStorage.setItem(KEY_USOS, String(usados + 1));
+            actualizarContadorUI();
+        }
+
+        function actualizarContadorUI() {
+            const restantes = getUsosRestantes();
+            const el = document.getElementById('contador-usos');
+            const btn = document.getElementById('btn-generar');
+            const aviso = document.getElementById('aviso-limite');
+
+            el.textContent = `${restantes}/${LIMITE_USOS} usos hoy`;
+
+            if (restantes <= 0) {
+                el.className = 'text-xs font-bold text-red-500';
+                btn.disabled = true;
+                aviso.classList.remove('hidden');
+            } else if (restantes <= 2) {
+                el.className = 'text-xs font-bold text-amber-500';
+            } else {
+                el.className = 'text-xs font-bold text-slate-500';
+            }
+        }
+
+        // Actualizar contador al cargar la página
+        actualizarContadorUI();
+
+        // ─── NOTIFICACIONES ─────────────────────────────────────────────────────
+        function showMessage(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => toast.classList.add('translate-y-32', 'opacity-0'), 5000);
+        }
+
+        // ─── CONTROL DE PANTALLAS ───────────────────────────────────────────────
+        function switchView(viewId) {
+            ['view-form', 'view-loading', 'view-result'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(viewId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetApp() {
+            document.getElementById('materia').value = '';
+            document.getElementById('tema').value = '';
+            document.getElementById('aprendizaje').value = '';
+            document.getElementById('problema').value = '';
+            switchView('view-form');
+        }
+
+        // ─── LLAMADA AL SERVIDOR PROPIO (sin API key en el frontend) ───────────
+        async function startTransformation() {
+            if (getUsosRestantes() <= 0) {
+                showMessage("Usaste todos tus usos de hoy. Volvé mañana 🙌");
+                return;
+            }
+
+            const data = {
+                materia:     document.getElementById('materia').value.trim(),
+                tema:        document.getElementById('tema').value.trim(),
+                aprendizaje: document.getElementById('aprendizaje').value.trim(),
+                problema:    document.getElementById('problema').value.trim()
+            };
+
+            if (!data.materia || !data.tema || data.aprendizaje.length < 5 || data.problema.length < 5) {
+                showMessage("Por favor, completá todos los campos para generar el proyecto.");
+                return;
+            }
+
+            const btn = document.getElementById('btn-generar');
+            btn.disabled = true;
+            switchView('view-loading');
+
+            // Timeout de seguridad: si tarda más de 40 seg, vuelve al formulario
+            const timeout = setTimeout(() => {
+                showMessage("La IA tardó demasiado. Por favor, intentá de nuevo.");
+                btn.disabled = false;
+                switchView('view-form');
+            }, 40000);
+
+            try {
+                // ↓ Llama a TU función serverless, no a Gemini directamente
+                const response = await fetch('/api/transform', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                clearTimeout(timeout);
+
+                if (!response.ok) throw new Error('Error del servidor: ' + response.status);
+
+                const result = await response.json();
+                registrarUso();
+                renderResult(result, data);
+
+            } catch (error) {
+                clearTimeout(timeout);
+                console.error(error);
+                showMessage("Error de conexión. Por favor, intentá de nuevo en un momento.");
+                switchView('view-form');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ─── RENDERIZADO ────────────────────────────────────────────────────────
+        function renderResult(data, originalInput) {
+            switchView('view-result');
+
+            document.getElementById('doc-materia').textContent = originalInput.materia || 'Materia General';
+            document.getElementById('doc-tema').textContent    = originalInput.tema    || 'Tema Central';
+            document.getElementById('res-pregunta').textContent = data.pregunta;
+            document.getElementById('res-socios').textContent   = data.opcionB.areas;
+            document.getElementById('res-producto').textContent = data.opcionB.producto;
+            document.getElementById('res-desc').textContent     = data.opcionB.descripcion;
+
+            const container = document.getElementById('siglas-container');
+            container.innerHTML = '';
+
+            const config = {
+                s: { title: 'Ciencia',     color: 'text-blue-600',   bg: 'bg-blue-50'   },
+                t: { title: 'Tecnología',  color: 'text-emerald-600', bg: 'bg-emerald-50'},
+                e: { title: 'Ingeniería',  color: 'text-amber-600',  bg: 'bg-amber-50'  },
+                a: { title: 'Artes',       color: 'text-rose-600',   bg: 'bg-rose-50'   },
+                m: { title: 'Matemática',  color: 'text-indigo-600', bg: 'bg-indigo-50' }
+            };
+
+            Object.keys(config).forEach(key => {
+                const card = document.createElement('div');
+                card.className = `flex gap-3 items-start p-3 ${config[key].bg} rounded-xl border border-slate-100/50`;
+
+                const badge = document.createElement('div');
+                badge.className = `w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm uppercase shadow-sm bg-white ${config[key].color} flex-shrink-0`;
+                badge.textContent = key.toUpperCase();
+
+                const textDiv = document.createElement('div');
+                const labelEl = document.createElement('span');
+                labelEl.className = 'text-[9px] font-black uppercase text-slate-500 tracking-widest';
+                labelEl.textContent = config[key].title;
+
+                const pEl = document.createElement('p');
+                pEl.className = 'text-xs md:text-sm font-medium text-slate-700 leading-tight mt-1';
+                pEl.textContent = data.opcionA[key]; // textContent en lugar de innerHTML
+
+                textDiv.appendChild(labelEl);
+                textDiv.appendChild(pEl);
+                card.appendChild(badge);
+                card.appendChild(textDiv);
+                container.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        // ─── EXPORTAR PDF ───────────────────────────────────────────────────────
+        function downloadPDF() {
+            const element = document.getElementById('pdf-content');
+            const materia = document.getElementById('materia').value || "Clase";
+
+            element.classList.remove('shadow-sm', 'border');
+
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: `Propuesta_STEAM_${materia.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save()
+                .then(()  => element.classList.add('shadow-sm', 'border'))
+                .catch(() => element.classList.add('shadow-sm', 'border')); // restaura aunque falle
+        }
+    </script>
+</body>
+</html>
